@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,100' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style3.css">
+    <link rel="stylesheet" href="./style.css">
+    <link href="signin.css" rel="stylesheet">
+    <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <main class="form-signin w-100 m-auto">
+      <form>
+    <div id="form-errors" class="hidden">
+      <i class="fa fa-exclamation-triangle"></i>
+      <p id="card-error">Card error</p>
+    </div>
+    <div id="form-container" style="align-self: center;">
+    
+      <div id="card-front">
+        <div id="shadow"></div>
+        <div id="image-container">
+          <span id="amount"> <strong>Enter Card details:</strong></span>
+          <span id="card-image">
+          
+            </span>
+        </div>
+        <!--- end card image container --->
+    
+        <label for="card-number">
+            Card Number
+          </label>
+        <input type="text" id="card-number" placeholder="1234 5678 9101 1112" length="16">
+        <div id="cardholder-container">
+          <label for="card-holder">Card Holder
+          </label>
+          <input type="text" id="card-holder" placeholder="e.g. John Doe" />
+        </div>
+        <!--- end card holder container --->
+        <div id="exp-container">
+          <label for="card-exp">
+              Expiration
+            </label>
+          <input id="card-month" type="text" placeholder="MM" length="2">
+          <input id="card-year" type="text" placeholder="YY" length="2">
+        </div>
+            <div id="cvc-container">
+          <label for="card-cvc"> CVC/CVV</label>
+          <input type="password" id="card-cvc" placeholder="XXX-X" type="text" min-length="3" max-length="4">
+          <p>Last 3 or 4 digits</p>
+        </div>
+        <!--- end CVC container --->
+        <!--- end exp container --->
+      </div>
+      <!--- end card front --->
+      <div id="card-back">
+        <div id="card-stripe">
+        </div>
+    
+      </div>
+      <!--- end card back --->
+      <input type="text" id="card-token" />
+      <button type="button" id="card-btn" style="background-color: orangered; color: white;" >Submit</button>
+      
+    </div>
+
+    <!--- end form container --->
+  </form>
+
+  <!-- The overlay -->
+<div id="myNav" class="overlay">
+
+  <!-- Button to close the overlay navigation -->
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+
+  <!-- Overlay content -->
+  <div class="overlay-content" >
+    <a style="font-size: 16px; color: white; text-align: center;">Do you still want to continue your transaction even after reading about the frauds that can be possible for you too.</a>
+    <a style="font-size: 14px; color: white; text-align: left; padding-left: 160px;">Social Engineering</a>
+    <a style="font-size: 14px; color: white; text-align: left; padding-left: 160px;">Skimming</a>
+    <a style="font-size: 14px; color: white; text-align: left; padding-left: 160px;">Phishing Attack</a>
+    <a style="font-size: 14px; color: white; text-align: left; padding-left: 160px;">Mobile Banking Malwares</a>
+    <a style="font-size: 16px; color: white; text-align: left; padding-left: 120px;">Why don't you opt for a safer transaction method "My Wallet"</a>
+    <button class="btn btn-success" style="height: 60px ; text-align: center ; color: white;" type="submit"><a style="text-align: center; vertical-align: text-top; color:white;" href="wallet.html">MY Wallet</a></button>
+  </div>
+
+</div>
+
+</main>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+    <script src="https://use.fontawesome.com/f1e0bf0cbc.js"></script>
+    <script>$(document).ready(function () {
+
+      Stripe.setPublishableKey('pk_test_9D43kM3d2vEHZYzPzwAblYXl');
+  
+      var cardNumber, cardMonth, cardYear, cardCVC, cardHolder;
+  
+      // check for any empty inputs
+      function findEmpty() {
+          var emptyText = $('#form-container input').filter(function () {
+  
+              return $(this).val == null;
+          });
+  
+          // add invalid class to empty inputs
+          console.log(emptyText.prevObject);
+          emptyText.prevObject.addClass('invalid');
+      }
+  
+      // check for card type and display corresponding icon
+      function checkCardType() {
+          cardNumber = $('#card-number').val();
+          var cardType = Stripe.card.cardType(cardNumber);
+          switch (cardType) {
+              case 'Visa':
+                  $('#card-image').html('<img src="./assets/brand/visa-svgrepo-com.svg" height="100%">');
+                  break;
+              case 'MasterCard':
+                  $('#card-image').html('<img src="./assets/brand/mastercard-svgrepo-com.svg" height="100%">');
+                  break;
+              case 'Discover':
+                  $('#card-image').html('<img src="./assets/brand/discover-svgrepo-com.svg" height="100%">');
+                  break;
+              case 'American Express':
+                  $('#card-image').html('<img src="./assets/brand/american-express-svgrepo-com.svg" height="100%">');
+                  break;
+              case 'Unknown':
+                  $('#card-image').html('<img src="./assets/brand/unknown-svgrepo-com.svg" height="55px">');
+                  break;
+          }
+      }
+  
+      // check card type on card number input blur 
+      $('#card-number').blur(function (event) {
+          event.preventDefault();
+          checkCardType();
+      });
+  
+      // on button click: 
+      $('#card-btn').click(function (event) {
+  
+          // get each input value and use Stripe to determine whether they are valid
+          var cardNumber = $('#card-number').val();
+          var isValidNo = Stripe.card.validateCardNumber(cardNumber);
+          var expMonth = $('#card-month').val();
+          var expYear = $('#card-year').val();
+          var isValidExpiry = Stripe.card.validateExpiry(expMonth, expYear);
+          var cardCVC = $('#card-cvc').val();
+          var isValidCVC = Stripe.card.validateCVC(cardCVC);
+          var cardHolder = $('#card-holder').val();
+          event.preventDefault();
+  
+          // alert the user if any fields are missing
+          if (!cardNumber || !cardCVC || !cardHolder || !expMonth || !expYear) {
+              console.log(cardNumber + cardCVC + cardHolder + cardMonth + cardYear);
+              $('#form-errors').addClass('hidden');
+              $('#card-success').addClass('hidden');
+              $('#form-errors').removeClass('hidden');
+              $('#card-error').text('Please complete all fields.');
+              findEmpty();
+          } else {
+  
+              // alert the user if any fields are invalid
+              if (!isValidNo || !isValidExpiry || !isValidCVC) {
+                  $('#form-errors').css('display', 'block');
+                  if (!isValidNo) {
+                      $('#card-error').text('Invalid credit card number.');
+                  } else if (!isValidExpiry) {
+                      $('#card-error').text('Invalid expiration date.')
+                  } else if (!isValidCVC) {
+                      $('#card-error').text('Invalid CVC code.')
+                  }
+  
+              } else {
+                  $('#card-success').removeClass('hidden');
+                  openNav();
+              }
+          }
+      })
+  
+  });
+  </script>
+  <script>
+  /* Open */
+    function openNav() {
+      document.getElementById("myNav").style.width = "100%";
+    }
+    
+    /* Close */
+    function closeNav() {
+      document.getElementById("myNav").style.width = "0%";
+    }
+    </script>
+
+  </body>
+
+</html>
